@@ -1,13 +1,24 @@
+// Open loop motor control example
 #include <SimpleFOC.h>
 
-// BLDCMotor(pole pair number, phase resistance (optional) );
+
+// BLDC motor & driver instance
+// BLDCMotor motor = BLDCMotor(pole pair number);
 BLDCMotor motor = BLDCMotor(11);
-// BLDCDriver3PWM(pwmA, pwmB, pwmC, Enable(optional));
+// BLDCDriver3PWM driver = BLDCDriver3PWM(pwmA, pwmB, pwmC, Enable(optional));
 BLDCDriver3PWM driver = BLDCDriver3PWM(4, 5, 6, 0);
+
+// Stepper motor & driver instance
+//StepperMotor motor = StepperMotor(50);
+//StepperDriver4PWM driver = StepperDriver4PWM(9, 5, 10, 6,  8);
+
+
+//target variable
+float target_velocity = 0;
 
 // instantiate the commander
 Commander command = Commander(Serial);
-void doTarget(char* cmd) { command.scalar(&motor.target, cmd); }
+void doTarget(char* cmd) { command.scalar(&target_velocity, cmd); }
 void doLimit(char* cmd) { command.scalar(&motor.voltage_limit, cmd); }
 
 void setup() {
@@ -47,9 +58,6 @@ void setup() {
     return;
   }
 
-  // set the target velocity [rad/s]
-  motor.target = 6.28; // one rotation per second
-
   // add target command T
   command.add('T', doTarget, "target velocity");
   command.add('L', doLimit, "voltage limit");
@@ -62,7 +70,9 @@ void setup() {
 void loop() {
 
   // open loop velocity movement
-  motor.move();
+  // using motor.voltage_limit and motor.velocity_limit
+  // to turn the motor "backwards", just set a negative target_velocity
+  motor.move(target_velocity);
 
   // user communication
   command.run();
