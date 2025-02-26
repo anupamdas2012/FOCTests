@@ -26,10 +26,10 @@ void doA(){encoder.handleA();}
 void doB(){encoder.handleB();}
 
 // voltage set point variable
-float target_voltage = 1;
+float target = 0;
 // instantiate the commander
 Commander command = Commander(Serial);
-void doTarget(char* cmd) { command.scalar(&target_voltage, cmd); }
+void doTarget(char* cmd) { command.scalar(&target, cmd); }
 
 void setup() { 
   
@@ -44,12 +44,12 @@ void setup() {
   encoder.enableInterrupts(doA, doB); 
   // link the motor to the sensor
   motor.linkSensor(&encoder);
-  motor.monitor_variables = _MON_TARGET | _MON_VEL | _MON_ANGLE; // default _MON_TARGET | _MON_VOLT_Q | _MON_VEL | _MON_ANGLE
+  //motor.monitor_variables = _MON_TARGET | _MON_VEL | _MON_ANGLE; // default _MON_TARGET | _MON_VOLT_Q | _MON_VEL | _MON_ANGLE
   motor.monitor_downsample = 100; // default 10
 
   // driver config
   // power supply voltage [V]
-  driver.voltage_power_supply = 11;
+  driver.voltage_power_supply = 19;
   driver.init();
   // link driver
   motor.linkDriver(&driver);
@@ -63,8 +63,12 @@ void setup() {
 //  motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
 
   // set motion control loop to be used
-  motor.controller = MotionControlType::torque;
-  motor.torque_controller = TorqueControlType::voltage;
+  motor.PID_velocity.P=0.0;
+  motor.PID_velocity.I = 0.0;
+  motor.LPF_velocity.Tf = 0.1;
+
+  motor.controller = MotionControlType::velocity;
+  //motor.torque_controller = TorqueControlType::voltage;
 
   // comment out if not needed
   motor.useMonitoring(Serial);
@@ -84,24 +88,16 @@ void setup() {
 
 void loop() {
 
-  // main FOC algorithm function
-  // the faster you run this function the better
-  // Arduino UNO loop  ~1kHz
-  // Bluepill loop ~10kHz 
+  motor.PID_velocity.P = target;
   motor.loopFOC();
+  motor.move(5.0);
 
-  // Motion control function
-  // velocity, position or voltage (defined in motor.controller)
-  // this function can be run at much lower frequency than loopFOC() function
-  // You can also use motor.move() and set the motor.target in the code
-  motor.move(target_voltage);
-
-  Serial.print(encoder.getAngle());
-
-  if(encoder.getAngle()>6.283)
-  {
-    motor.move(0);
-  }
+  // if(encoder.getAngle()>6.283)
+  // {
+  //   motor.move(0);
+  //   motor.disable();
+  // }
   // user communication 
+  motor.monitor();
   command.run();
 }
