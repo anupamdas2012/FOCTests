@@ -39,6 +39,9 @@ void setup() {
   // comment out if not needed
   SimpleFOCDebug::enable(&Serial);
 
+
+  encoder.min_elapsed_time=0.001; //2ms
+
   // initialize encoder sensor hardware
   encoder.init();
   encoder.enableInterrupts(doA, doB); 
@@ -65,7 +68,7 @@ void setup() {
   // set motion control loop to be used
   motor.PID_velocity.P=0.0;
   motor.PID_velocity.I = 0.0;
-  motor.LPF_velocity.Tf = 0.1;
+  motor.LPF_velocity.Tf = 0.01;
 
   motor.controller = MotionControlType::velocity;
   //motor.torque_controller = TorqueControlType::voltage;

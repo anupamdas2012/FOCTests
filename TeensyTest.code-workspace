@@ -6,6 +6,10 @@
 		{
 			"name": "TeensyTest",
 			"path": "./TeensyTest"
+		},
+		{
+			"name": "BluepillTest",
+			"path": "../BluepillTest"
 		}
 	],
 	"settings": {}
