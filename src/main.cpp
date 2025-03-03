@@ -56,16 +56,22 @@ void setup() {
 
   motor.voltage_limit = 8;
   motor.velocity_limit = 20;
-
+  //motor.LPF_angle.Tf = 5;
   // aligning voltage
   motor.voltage_sensor_align = 2;
   // choose FOC modulation (optional)
 
   // set motion control loop to be used
-  motor.PID_velocity.P = 0.2;
-  motor.PID_velocity.I = 20;
-  motor.PID_velocity.D = 0.001;
-  motor.LPF_velocity.Tf = 0.1;
+  // motor.PID_velocity.P = 0.2;
+  // motor.PID_velocity.I = 20;
+  // motor.PID_velocity.D = 0.001;
+  // motor.LPF_velocity.Tf = 0.1;
+
+  motor.PID_velocity.P = 0.15;
+  motor.PID_velocity.I = 5;  // Reduced from 20
+  motor.PID_velocity.D = 0.005;  // Increased slightly
+  motor.LPF_velocity.Tf = 0.2;  // Increased from 0.1
+
   //motor.motion_downsample = 10;
 
   motor.controller = MotionControlType::velocity;
