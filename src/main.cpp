@@ -26,7 +26,7 @@ void doA(){encoder.handleA();}
 void doB(){encoder.handleB();}
 
 // voltage set point variable
-float target = 0;
+float target = 20;
 // instantiate the commander
 Commander command = Commander(Serial);
 void doTarget(char* cmd) { command.scalar(&target, cmd); }
@@ -45,7 +45,7 @@ void setup() {
   // link the motor to the sensor
   motor.linkSensor(&encoder);
   //motor.monitor_variables = _MON_TARGET | _MON_VEL | _MON_ANGLE; // default _MON_TARGET | _MON_VOLT_Q | _MON_VEL | _MON_ANGLE
-  motor.monitor_downsample = 100; // default 10
+  //motor.monitor_downsample = 100; // default 10
 
   // driver config
   // power supply voltage [V]
@@ -54,24 +54,24 @@ void setup() {
   // link driver
   motor.linkDriver(&driver);
 
-  motor.voltage_limit = 2;
+  motor.voltage_limit = 8;
   motor.velocity_limit = 20;
 
   // aligning voltage
   motor.voltage_sensor_align = 2;
   // choose FOC modulation (optional)
-//  motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
 
   // set motion control loop to be used
-  motor.PID_velocity.P=0.0;
-  motor.PID_velocity.I = 0.0;
+  motor.PID_velocity.P = 0.2;
+  motor.PID_velocity.I = 20;
+  motor.PID_velocity.D = 0.001;
   motor.LPF_velocity.Tf = 0.1;
+  //motor.motion_downsample = 10;
 
   motor.controller = MotionControlType::velocity;
-  //motor.torque_controller = TorqueControlType::voltage;
 
   // comment out if not needed
-  motor.useMonitoring(Serial);
+  //motor.useMonitoring(Serial);
 
   // initialize motor
   motor.init();
@@ -88,16 +88,9 @@ void setup() {
 
 void loop() {
 
-  motor.PID_velocity.P = target;
+ // motor.PID_velocity.I = target;
   motor.loopFOC();
-  motor.move(5.0);
+  motor.move(target);
 
-  // if(encoder.getAngle()>6.283)
-  // {
-  //   motor.move(0);
-  //   motor.disable();
-  // }
-  // user communication 
-  motor.monitor();
-  command.run();
+   command.run();
 }
