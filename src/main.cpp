@@ -29,7 +29,7 @@ void doB(){encoder.handleB();}
 float target = 20;
 // instantiate the commander
 Commander command = Commander(Serial);
-void doTarget(char* cmd) { command.scalar(&target, cmd); }
+void doMotor(char* cmd) { command.motor(&motor, cmd); }
 
 void setup() { 
   
@@ -39,16 +39,13 @@ void setup() {
   // comment out if not needed
   SimpleFOCDebug::enable(&Serial);
 
-
-  encoder.min_elapsed_time=0.001; //2ms
-
   // initialize encoder sensor hardware
   encoder.init();
   encoder.enableInterrupts(doA, doB); 
   // link the motor to the sensor
   motor.linkSensor(&encoder);
   //motor.monitor_variables = _MON_TARGET | _MON_VEL | _MON_ANGLE; // default _MON_TARGET | _MON_VOLT_Q | _MON_VEL | _MON_ANGLE
-  //motor.monitor_downsample = 100; // default 10
+  motor.monitor_downsample = 10; // default 10
 
   // driver config
   // power supply voltage [V]
@@ -62,20 +59,14 @@ void setup() {
   //motor.LPF_angle.Tf = 5;
   // aligning voltage
   motor.voltage_sensor_align = 2;
-  // choose FOC modulation (optional)
+  //encoder.min_elapsed_time=0.01; //2ms
+  motor.motion_downsample = 50;
+  motor.PID_velocity.P = 0.2;
+  motor.PID_velocity.I = 20;  // Reduced from 20
+  motor.PID_velocity.D = 0.0;  // Increased slightly
 
-  // set motion control loop to be used
-  // motor.PID_velocity.P = 0.2;
-  // motor.PID_velocity.I = 20;
-  // motor.PID_velocity.D = 0.001;
-  // motor.LPF_velocity.Tf = 0.1;
 
-  motor.PID_velocity.P = 0.15;
-  motor.PID_velocity.I = 5;  // Reduced from 20
-  motor.PID_velocity.D = 0.005;  // Increased slightly
-  motor.LPF_velocity.Tf = 0.2;  // Increased from 0.1
-
-  //motor.motion_downsample = 10;
+  motor.LPF_velocity.Tf = 0.02;  // Increased from 0.1
 
   motor.controller = MotionControlType::velocity;
 
@@ -88,10 +79,8 @@ void setup() {
   motor.initFOC();
 
   // add target command T
-  command.add('T', doTarget, "target voltage");
-
-  Serial.println(F("Motor ready."));
-  Serial.println(F("Set the target voltage using serial terminal:"));
+  //command.add('T', doTarget, "target voltage");
+  command.add('M',doMotor,"my motor");
   _delay(1000);
 }
 
@@ -99,7 +88,7 @@ void loop() {
 
  // motor.PID_velocity.I = target;
   motor.loopFOC();
-  motor.move(target);
-
-   command.run();
+  motor.move();
+  motor.monitor();
+  command.run();
 }
